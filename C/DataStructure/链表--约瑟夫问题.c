@@ -6,7 +6,7 @@ nclude <stdio.h>
 
 typedef struct node *link;
 
-struct node
+struct node 
 
 {
 
