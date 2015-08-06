@@ -1,0 +1,6 @@
+#include <iostream>
+
+void simple ();
+
+int main ()
+{
