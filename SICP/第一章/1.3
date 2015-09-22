@@ -1,0 +1,8 @@
+#lang racket
+
+(define (sum-larger-two x y z)
+	(cond ((and x < y x < z) (+ y z))
+		((and y < x y < z) (+ x z))
+		((and z < x z < y) (+ x y))))
+
+(sum-larger-two 5 6 7)
