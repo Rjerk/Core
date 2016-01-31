@@ -1,0 +1,21 @@
+int mySqrt(int x)
+{
+    int low = 0, high = x, ans;
+    if (x < 2)
+    {
+        return x;
+    }
+    while (low < high - 1)
+    {
+        ans = low + (high - low) / 2;
+        if (ans <= x / ans)
+        {
+            low = ans;
+        }
+        else
+        {
+            high = ans;
+        }
+    }
+    return low;
+}
