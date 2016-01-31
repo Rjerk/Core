@@ -1,0 +1,1 @@
+(low + high) / 2 may lead to an overflow, but low + (high - low) / 2 not.
