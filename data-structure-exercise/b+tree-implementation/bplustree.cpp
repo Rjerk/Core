@@ -1,4 +1,9 @@
 #include "bplustree.h"
+#include <iostream>
+
+using std::cout;
+using std::endl;
+using std::cerr;
 
 BPlusTree::BPlusTree(int order_):
 	root(nullptr), order(order_)
@@ -23,7 +28,7 @@ void BPlusTree::destroyTree()
 bool BPlusTree::search(KeyType key) const
 {
 	LeafNode* leaf = findLeaf(key);
-	return leaf->findKey(key);
+	return leaf->lookUp(key) != nullptr;
 }
 
 LeafNode* BPlusTree::findLeaf(KeyType key) const
@@ -48,13 +53,38 @@ void BPlusTree::insert(KeyType key, ValueType value)
 	}
 }
 
-void BPlusTree::print()
+void BPlusTree::print() const
 {
 	if (root == nullptr) {
 		cout << "empty tree.\n";
 	} else {
-		
+		std::queue<Node*> q0;
+        std::queue<Node*> q1;
+        auto currentLevel = &q0;
+        auto nextLevel = &q1;
+        currentLevel->push(root);
+        while (!currentLevel->empty()) {
+            printCurrentLevel(currentLevel, nextLevel);
+            std::swap(currentLevel, nextLevel);
+        }
 	}
+}
+
+void BPlusTree::printCurrentLevel(std::queue<Node*>* currentLevel,
+								  std::queue<Node*>* nextLevel) const
+{
+    cout << "|";
+    while (!currentLevel->empty()) {
+        Node* currentNode = currentLevel->front();
+        cout << currentNode->displayAllKey();
+        cout << " |";
+        if (!currentNode->isLeaf()) {
+            auto internal_node = static_cast<InternalNode*>(currentNode);
+            internal_node->queuePushChild(nextLevel);
+        }
+        currentLevel->pop();
+    }
+    cout << endl;
 }
 
 bool BPlusTree::empty() const
@@ -71,7 +101,7 @@ void BPlusTree::insertAsRoot(KeyType key, ValueType value)
 
 void BPlusTree::insertIntoLeaf(KeyType key, ValueType value)
 {
-	LeafNode* node = search(key);
+	LeafNode* node = findLeaf(key);
 	if (node == nullptr) {
 		// not found.
 		return ;
@@ -98,8 +128,19 @@ T* BPlusTree::split(T* node)
 void BPlusTree::insertToParent(Node* node, Node* sibling, KeyType key)
 {
 	InternalNode* parent = static_cast<InternalNode*>(node->getParent());
-	if (parent == nullptr) {
-		
+	if (parent == nullptr) { // insert to root.
+		root = new InternalNode(order);
+		parent = static_cast<InternalNode*>(root);
+		node->setParent(parent);
+		sibling->setParent(parent);
+		parent->generateNewRoot(node, sibling, key);
+	} else {
+		size_t newsz = parent->insertIntoAfter(node, sibling, key);
+		if (newsz > parent->maxNum()) {
+			InternalNode* parent_sibling = split(parent);
+			KeyType k = parent_sibling->getKeyAt(0);
+			insertToParent(parent, parent_sibling, k);
+		}
 	}
 }
 
@@ -114,7 +155,7 @@ void BPlusTree::remove(KeyType key)
 
 void BPlusTree::removeFromLeaf(KeyType key)
 {
-	LeafNode* leafnode = search(key);
+	LeafNode* leafnode = findLeaf(key);
 	if (!leafnode) {
 		return ;
 	}

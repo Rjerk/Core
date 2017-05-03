@@ -1,6 +1,12 @@
 #include "leafnode.h"
 #include "internal_node.h"
 #include <cmath>
+#include <sstream>
+#include <iostream>
+
+using std::cout;
+using std::endl;
+using std::cerr;
 
 LeafNode::LeafNode(int order_):
 	Node(order_), next(nullptr)
@@ -55,10 +61,6 @@ size_t LeafNode::removeAndDeleteRecord(KeyType key)
 	mappings.erase(p);
 	return num();
 }
-
-
-
-
 
 void LeafNode::setNext(LeafNode* next_node)
 {
@@ -137,9 +139,6 @@ Record* LeafNode::lookUp(KeyType key) const
 	return nullptr;
 }
 
-
-
-
 bool LeafNode::isLeaf() const
 {
 	return true;
@@ -157,5 +156,20 @@ size_t LeafNode::maxNum() const
 
 size_t LeafNode::minNum() const
 {
-	return std::ceil((getOrder()-1) / 2);
+	return std::ceil((getOrder()-1) / 2.0);
+}
+
+std::string LeafNode::displayAllKey() const
+{
+	std::ostringstream str_cout;
+	bool first = true;
+	for (auto m : mappings) {
+		if (first) {
+			first = false;
+		} else {
+			str_cout << " ";
+		}
+		str_cout << m.first;
+	}
+	return str_cout.str();
 }

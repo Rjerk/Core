@@ -3,6 +3,7 @@
 
 #include "node.h"
 
+#include <queue>
 #include <vector>
 #include <utility>
 
@@ -10,6 +11,7 @@ class InternalNode: public Node {
 	using MappingType = std::pair<KeyType, Node*>;
 public:
 	InternalNode(int order_);
+	InternalNode(int order_, Node* parent_);
 	~InternalNode();
 	
 	Node* lookUp(KeyType key) const;
@@ -23,11 +25,14 @@ public:
 	void moveAllTo(InternalNode* sibling, size_t node_index);
 	void moveFirstToEndOf(InternalNode* node);
 	void moveLastToFrontOf(InternalNode* node, size_t node_index);
-	
+	void generateNewRoot(Node* node, Node* sibling, KeyType key);
+	size_t insertIntoAfter(Node* node, Node* sibling, KeyType key);
+	void queuePushChild(std::queue<Node*>* nextLevel);
 	bool isLeaf() const override;
 	size_t num() const override;
 	size_t maxNum() const override;
 	size_t minNum() const override;
+	std::string displayAllKey() const override;
 private:
 	void copyHalfFrom(std::vector<MappingType>& m);
 	void copyAllFrom(std::vector<MappingType>& m);

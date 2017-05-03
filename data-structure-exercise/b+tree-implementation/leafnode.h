@@ -15,7 +15,6 @@ public:
 	size_t insertToLeaf(KeyType key, ValueType value);
 	size_t removeAndDeleteRecord(KeyType key);
 	bool searchInLeaf(KeyType key);
-
 	void setNext(LeafNode* node);
 	LeafNode* getNext() const;
 	KeyType firstKey() const;
@@ -25,12 +24,11 @@ public:
 	void moveLastToFrontOf(LeafNode* node, size_t node_index);
 	Record* lookUp(KeyType key) const;
 	
-	
-
 	bool isLeaf() const override;
 	size_t num() const override;
 	size_t maxNum() const override;
 	size_t minNum() const override;
+	std::string displayAllKey() const override;
 private:
 	bool earchInLeaf(KeyType key);
 	void insertToMappings(KeyType key, Record* record);

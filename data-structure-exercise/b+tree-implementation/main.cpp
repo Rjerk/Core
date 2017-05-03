@@ -3,17 +3,16 @@
 
 int main()
 {
-	char instruction;
+	char command;
+	KeyType key;
 	BPlusTree tree(4);
-	int key;
-	
-	for (;;) {
-		std::cout << "> ";
-		std::cin >> instruction;
-		switch (instruction) {
+	while (true) {
+		std::cout << "b+tree> ";
+		std::cin >> command;
+		switch (command) {
 			case 's':
 				std::cin >> key;
-				if (tree.search(key) != nullptr)
+				if (tree.search(key))
 					std::cout << key << " exists in tree.\n";
 				else
 					std::cout << "Not found.\n";
@@ -21,16 +20,19 @@ int main()
 			case 'i':
 				std::cin >> key;
 				tree.insert(key, key);
-				//tree.print();
+				tree.print();
 				break;
 			case 'd':
 				std::cin >> key;
 				tree.remove(key);
-				//tree.print();
+				tree.print();
+				break;
+			case 'p':
+				tree.print();
 				break;
 			default:
 				std::cin.ignore(256, '\n');
-				std::cout << "useless instruction.\n";
+				std::cout << "Unknown command.\n";
 				break;
 		}
 	}

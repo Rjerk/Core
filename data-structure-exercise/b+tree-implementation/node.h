@@ -3,6 +3,7 @@
 
 #include "common.h"
 #include <cstddef>
+#include <string>
 
 class Node {
 public:
@@ -19,6 +20,7 @@ public:
 	virtual size_t num() const = 0;
 	virtual size_t maxNum() const = 0;
 	virtual size_t minNum() const = 0;
+	virtual std::string displayAllKey() const = 0;
 private:
 	const int order;
 	Node* parent;

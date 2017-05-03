@@ -1,8 +1,14 @@
 #include "internal_node.h"
 #include <cmath>
+#include <sstream>
 
 InternalNode::InternalNode(int order_):
 	Node(order_)
+{
+}
+
+InternalNode::InternalNode(int order_, Node* parent_):
+	Node(order_, parent_)
 {
 }
 
@@ -115,6 +121,27 @@ void InternalNode::copyFirstFrom(MappingType p, size_t node_index)
 	static_cast<InternalNode*>(this->getParent())->setKeyAt(node_index, p.first);
 }
 
+void InternalNode::generateNewRoot(Node* node, Node* sibling, KeyType key)
+{
+	mappings.push_back(std::make_pair(DUMMY, node));
+	mappings.push_back(std::make_pair(key, sibling));
+}
+
+size_t InternalNode::insertIntoAfter(Node* node, Node* sibling, KeyType key)
+{
+	auto iter = mappings.begin();
+	while (iter != mappings.end() && iter->second != node)
+		++iter;
+	mappings.insert(iter+1, std::make_pair(key, sibling));
+	return num();
+}
+
+void InternalNode::queuePushChild(std::queue<Node*>* nextLevel)
+{
+	for (auto m : mappings)
+		nextLevel->push(m.second);
+}
+
 bool InternalNode::isLeaf() const
 {
 	return false;
@@ -127,10 +154,28 @@ size_t InternalNode::num() const
 
 size_t InternalNode::maxNum() const
 {
-	return std::ceil(getOrder()/2);
+	return std::ceil(getOrder()/2.0);
 }
 
 size_t InternalNode::minNum() const
 {
 	return getOrder()/2;
+}
+
+std::string InternalNode::displayAllKey() const
+{
+	if (mappings.empty())
+		return "";
+	std::ostringstream str_cout;
+	bool first = true;
+	for (auto m : mappings) {
+		if (first) {
+			first = false;
+		} else {
+			str_cout << " ";
+		}
+		if (m.first != DUMMY)
+			str_cout << m.first;
+	}
+	return str_cout.str();
 }
