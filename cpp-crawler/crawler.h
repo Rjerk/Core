@@ -1,7 +1,7 @@
 #ifndef CRAWLER_H
 #define CRAWLER_H
 
-#include <epoll>
+#include <sys/epoll.h>
 #include "dns.h"
 #include "url.h"
 
