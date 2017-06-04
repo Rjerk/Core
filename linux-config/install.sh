@@ -1,6 +1,9 @@
 echo "---install p7zip---";
 sudo apt-get -y install p7zip-full p7zip-rar
 
+echo "---install boost---";
+sudo apt-get -y install libboost-all-dev
+
 echo "---install vim---";
 sudo apt-get -y install vim
 
