@@ -4,39 +4,24 @@
 #include <initializer_list> // initializer_list
 #include <memory> // unique_ptr
 #include <iterator>
-
+#include <algorithm>
+#include <utility>
+#include <stdexcept>
 #include "vec_iterator.h"
+#include <iostream>
+using std::cout;
+using std::endl;
+using std::cerr;
 
 namespace mystl {
-
-//template <typename T, typename Allocator>
-//struct VectorBase {
-//	using allocator_type = Allocator;
-//	using size_type = size_t;
-//	using difference_type = ptrdiff_t;
-//
-//	static const size_type npos = -1; // npos means non-valid position or simply non-position
-//	static const size_type maxsize = -2; // maxsize < npos
-//public:
-//	VectorBase();
-//	VectorBase(const allocator_type& alloc_);
-//	VectorBase(size_type n, const allocator_type& alloc_);
-//	~VectorBase();
-//protected:
-//	T* start;
-//	T* finish;
-//protected:
-//	T* doAllocate(size_type n);
-//	void doFree();
-//	void doReallocate();
-//	void checkAndAlloc();
-//};
 
 const size_t VEC_MIN_SIZE = 4;
 
 template <typename T, typename Allocator = std::allocator<T>>
 class Vector : private Allocator {
 public:
+	template <typename Type, typename Alloc>
+	friend void swap(Vector<Type, Alloc>& lhs, Vector<Type, Alloc>& rhs) noexcept;
 	using value_type = T;
 	using allocator_type = Allocator;
 	using size_type = size_t;
@@ -50,41 +35,59 @@ public:
 	using reverse_iterator = std::reverse_iterator<iterator>;
 	using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 protected:
-	typename Allocator::pointer elements;
-	typename Allocator::pointer first_free;
-	typename Allocator::pointer end_of_storage;
-//	pointer elements;
-//	pointer first_free;
-//	pointer end_of_storage;
+	pointer elements;
+	pointer first_free;
+	pointer end_of_storage;
+	void fillAndInitialize(size_type n, const T& value)
+	{
+		elements = allocateAndFill(n, value);
+		first_free = elements + n;
+		end_of_storage = first_free;
+	}
+	typename Allocator::pointer allocateAndFill(size_type n, const T& value)
+	{
+		auto result = Allocator::allocate(n);
+		std::uninitialized_fill_n(result, n, value);
+		return result;
+	}
+	void doDestroy(pointer beg, pointer end)
+	{
+		if (beg != end) {
+			for ( ; beg != end ; ++beg)
+				Allocator::destroy(beg);
+		}
+	}
+	void doDeallocate()
+	{
+		if (elements)
+			Allocator::deallocate(elements, end_of_storage-elements);
+	}
+	void moveToNewChunk(size_type new_cap)
+	{
+		T* new_data = Allocator::allocate(new_cap);
+		T* new_first_free = std::uninitialized_copy(elements, first_free, new_data);
+		doDestroy(elements, first_free);
+		doDeallocate();
+		elements = new_data;
+		first_free = new_first_free;
+		end_of_storage = elements + new_cap;
+	}
 public:
 	explicit Vector(const Allocator& alloc_ = Allocator()) noexcept;
 	Vector(size_type count, const T& value, const Allocator& alloc_ = Allocator());
-	explicit Vector(size_t count, const Allocator& alloc_);
+	explicit Vector(size_t count, const Allocator& alloc_= Allocator());
 
-//	template <typename InputIt>
-//	Vector(InputIt first, InputIt last, const Allocator& alloc_ = Allocator());
-
-	Vector(const Vector<T>& rhs);
-	Vector(const Vector<T>& rhs, const Allocator& alloc_);
-	Vector(Vector<T>&& rhs) noexcept;
+	Vector(const Vector<T, Allocator>& rhs);
+	Vector(Vector<T, Allocator>&& rhs) noexcept;
 	Vector(std::initializer_list<T> init, const Allocator& alloc_ = Allocator());
 	~Vector();
 	
-	Vector& operator=(const Vector& rhs);
-	Vector& operator=(Vector&& other);
-	Vector& operator=(std::initializer_list<T> ilist);
+	Vector& operator=(Vector other) noexcept;
 	
 	void assign(size_type count, const T& value);
-	
-	template <typename InputIt>
-	void assign(InputIt first, InputIt last);
-	
 	void assign(std::initializer_list<T> ilist);
 	
-	allocator_type get_allocator() const
-	{
-		return static_cast<const Allocator&>(*this);
-	}
+	allocator_type get_allocator() const;
 	
 	reference at(size_type pos);
 	const_reference at(size_type pos) const;
@@ -125,177 +128,280 @@ public:
 	void reserve(size_type new_cap);
 	void shrink_to_fit();
 	void clear() noexcept;
-	
+
+	iterator insert(const_iterator pos, const T& value);
+	iterator insert(const_iterator pos, T&& value);
+	iterator insert(const_iterator pos, size_type count, const T& value);
+	iterator insert(const_iterator pos, std::initializer_list<T> ilist);
+
+	template <typename... Args>
+	iterator emplace(const_iterator pos, Args&&... args);
+
+	iterator erase(const_iterator pos);
+	iterator erase(const_iterator first, const_iterator last);
+
 	void push_back(const T& value);
 	void push_back(T&& value);
 
 	template <typename... Args>
 	void emplace_back(Args&&...args);
-	
+
 	void pop_back();
+
 	void resize(size_type count);
 	void resize(size_type count, const value_type& value);
 	
-	void swap(Vector& rhs);
+	void swap(Vector& rhs) noexcept;
 };
 
 template <typename T, typename Allocator>
-Vector<T, Allocator>::Vector(const Allocator& alloc_) noexcept:
-	elements(nullptr), first_free(nullptr), end_of_storage(nullptr)
+Vector<T, Allocator>::Vector(const Allocator& alloc_) noexcept
+	: elements(nullptr), first_free(nullptr), end_of_storage(nullptr)
 {
 }
 
 template <typename T, typename Allocator>
-Vector<T, Allocator>::Vector(size_type count, const T& value, const Allocator& alloc_):
-	Allocator(alloc_), elements(0)
+Vector<T, Allocator>::Vector(size_type count, const T& value, const Allocator& alloc_)
+	: Allocator(alloc_)
 {
-	if (count != 0) {
-		elements = Allocator::allocate(count);
-		size_type i = 0;
-		try {
-			for ( ; i < count; ++i)
-				Allocator::construct(elements+i, value);
-			first_free = elements + count;
-			end_of_storage = elements + count;
-		} catch (...) {
-			for (size_type j = 0; j < i; ++j) 
-				Allocator::destroy(elements+j);
-			Allocator::deallocate(elements, count);
-			throw;
-		}
-	}
+	fillAndInitialize(count, value);
 }
 
 template <typename T, typename Allocator>
-Vector<T, Allocator>::Vector(size_t count, const Allocator& alloc_):
-	Vector(count, T(), alloc_)
+Vector<T, Allocator>::Vector(size_t count, const Allocator& alloc_)
+	: Vector(count, T(), alloc_)
 {
 }
 
-//template <typename T, typename Allocator>
-//template <typename InputIt>
-//Vector<T, Allocator>::Vector(InputIt first, InputIt last, const Allocator& alloc_)
-//{
-//}
-
 template <typename T, typename Allocator>
-Vector<T, Allocator>::Vector(const Vector<T>& rhs)
+Vector<T, Allocator>::Vector(const Vector<T, Allocator>& rhs)
 {
-	
+	elements = Allocator::allocate(rhs.end_of_storage-rhs.elements);
+	first_free = std::uninitialized_copy(rhs.elements, rhs.first_free, elements);
+	end_of_storage = rhs.end_of_storage;
 }
 
 template <typename T, typename Allocator>
-Vector<T, Allocator>::Vector(const Vector<T>& rhs, const Allocator& alloc_)
+Vector<T, Allocator>::Vector(Vector<T, Allocator>&& rhs) noexcept
+	: elements(nullptr), first_free(nullptr), end_of_storage(nullptr)
 {
-	
-}
-
-template <typename T, typename Allocator>
-Vector<T, Allocator>::Vector(Vector<T>&& rhs) noexcept
-{
-	
+	this->swap(rhs);
 }
 
 template <typename T, typename Allocator>
 Vector<T, Allocator>::Vector(std::initializer_list<T> init, const Allocator& alloc_)
+	: Allocator(alloc_)
 {
-	
+	elements = Allocator::allocate(init.size());
+	std::uninitialized_copy_n(init.begin(), init.size(), elements);
+	first_free = elements + init.size();
+	end_of_storage = first_free;
 }
 
 template <typename T, typename Allocator>
 Vector<T, Allocator>::~Vector()
 {
-	if (elements != first_free) {
-		for (auto i = elements; i < first_free; ++i)
-			Allocator::destroy(i);
-		
-		Allocator::deallocate(elements, end_of_storage-elements);
+	if (capacity() != 0) {
+		doDestroy(elements, first_free);
+		doDeallocate();
+		elements = first_free = end_of_storage = nullptr;
 	}
-	elements = first_free = end_of_storage = nullptr;
+}
+
+template <typename T, typename Allocator>
+Vector<T, Allocator>&
+Vector<T, Allocator>::operator=(Vector rhs) noexcept
+{
+	this->swap(rhs);
+	return *this;
+}
+
+template <typename T, typename Allocator>
+void Vector<T, Allocator>::assign(size_type count, const T& value)
+{
+	if (count > capacity()) {
+		Vector(count, value).swap(*this);
+	} else {
+		clear();
+		std::fill(elements, elements + count, value);
+		first_free = elements + count;
+	}
+}
+
+template <typename T, typename Allocator>
+void Vector<T, Allocator>::assign(std::initializer_list<T> ilist)
+{
+	if (ilist.size() > capacity()) {
+		Vector(ilist).swap(*this);
+	} else {
+		clear();
+		std::copy(ilist.begin(), ilist.end(), elements);
+		first_free = elements + ilist.size();
+	}
+}
+	
+template <typename T, typename Allocator>
+typename Vector<T, Allocator>::allocator_type
+Vector<T, Allocator>::get_allocator() const
+{
+	return static_cast<const Allocator&>(*this);
+}
+	
+template <typename T, typename Allocator>
+typename Vector<T, Allocator>::reference
+Vector<T, Allocator>::at(size_type pos)
+{
+	if (pos >= size())
+		throw std::out_of_range("Vector::at()");
+	return static_cast<reference>(*(elements+pos));
+}
+
+template <typename T, typename Allocator>
+typename Vector<T, Allocator>::const_reference
+Vector<T, Allocator>::at(size_type pos) const
+{if (pos >= size())
+		throw std::out_of_range("Vector::at()");
+	return static_cast<const_reference>(*(elements+pos));
+}
+
+template <typename T, typename Allocator>
+typename Vector<T, Allocator>::reference
+Vector<T, Allocator>::operator[](size_type pos)
+{
+	return static_cast<reference>(*(elements + pos));
+}
+
+template <typename T, typename Allocator>
+typename Vector<T, Allocator>::const_reference
+Vector<T, Allocator>::operator[](size_type pos) const
+{
+	return static_cast<const_reference>(*(elements + pos));
+}
+
+template <typename T, typename Allocator>
+typename Vector<T, Allocator>::reference
+Vector<T, Allocator>::front()
+{
+	return *elements;
+}
+
+template <typename T, typename Allocator>
+typename Vector<T, Allocator>::const_reference
+Vector<T, Allocator>::front() const
+{
+	return *elements;
+}
+
+template <typename T, typename Allocator>
+typename Vector<T, Allocator>::reference
+Vector<T, Allocator>::back()
+{
+	return *(first_free-1);
+}
+
+template <typename T, typename Allocator>
+typename Vector<T, Allocator>::const_reference
+Vector<T, Allocator>::back() const
+{
+	return *(first_free-1);
+}
+
+template <typename T, typename Allocator>
+typename Vector<T, Allocator>::pointer
+Vector<T, Allocator>::data() noexcept
+{
+	return elements;
+}
+
+template <typename T, typename Allocator>
+typename Vector<T, Allocator>::const_pointer
+Vector<T, Allocator>::data() const noexcept
+{
+	return static_cast<const_pointer>(elements);
 }
 
 template <typename T, typename Allocator>
 typename Vector<T, Allocator>::iterator
 Vector<T, Allocator>::begin() noexcept
 {
-	return elements;
+	return static_cast<iterator>(elements);
 }
 
 template <typename T, typename Allocator>
 typename Vector<T, Allocator>::const_iterator
 Vector<T, Allocator>::begin() const noexcept
 {
-	return elements;
+	return static_cast<const_iterator>(elements);
 }
 
 template <typename T, typename Allocator>
 typename Vector<T, Allocator>::const_iterator
 Vector<T, Allocator>::cbegin() const noexcept
 {
-	return elements;
+	return static_cast<const_iterator>(elements);
 }
 
 template <typename T, typename Allocator>
 typename Vector<T, Allocator>::iterator
 Vector<T, Allocator>::end() noexcept
 {
-	return first_free;
+	return static_cast<iterator>(first_free);
 }
 
 template <typename T, typename Allocator>
 typename Vector<T, Allocator>::const_iterator
 Vector<T, Allocator>::end() const noexcept
 {
-	return first_free;
+	return static_cast<const_iterator>(first_free);
 }
 
 template <typename T, typename Allocator>
 typename Vector<T, Allocator>::const_iterator
 Vector<T, Allocator>::cend() const noexcept
 {
-	return first_free;
+	return static_cast<const_iterator>(first_free);
 }
 
 template <typename T, typename Allocator>
 typename Vector<T, Allocator>::reverse_iterator
 Vector<T, Allocator>::rbegin() noexcept
 {
-	return reverse_iterator(first_free);
+	return static_cast<reverse_iterator>(first_free);
 }
 
 template <typename T, typename Allocator>
 typename Vector<T, Allocator>::const_reverse_iterator
 Vector<T, Allocator>::rbegin() const noexcept
 {
-	return const_reverse_iterator(first_free);
+	return static_cast<const_reverse_iterator>(first_free);
 }
 
 template <typename T, typename Allocator>
 typename Vector<T, Allocator>::const_reverse_iterator
 Vector<T, Allocator>::crbegin() const noexcept
 {
-	return const_reverse_iterator(first_free);
+	return static_cast<const_reverse_iterator>(first_free);
 }
 
 template <typename T, typename Allocator>
 typename Vector<T, Allocator>::reverse_iterator
 Vector<T, Allocator>::rend() noexcept
 {
-	return reverse_iterator(elements);
+	return static_cast<reverse_iterator>(elements);
 }
 
 template <typename T, typename Allocator>
 typename Vector<T, Allocator>::const_reverse_iterator
 Vector<T, Allocator>::rend() const noexcept
 {
-	return const_reverse_iterator(elements);
+	return static_cast<const_reverse_iterator>(elements);
 }
 
 template <typename T, typename Allocator>
 typename Vector<T, Allocator>::const_reverse_iterator
 Vector<T, Allocator>::crend() const noexcept
 {
-	return const_reverse_iterator(elements);
+	return static_cast<const_reverse_iterator>(elements);
 }
 
 template <typename T, typename Allocator>
@@ -315,7 +421,7 @@ template <typename T, typename Allocator>
 typename Vector<T, Allocator>::size_type
 Vector<T, Allocator>::max_size() const noexcept
 {
-	return 0xffffffffUL / sizeof(T);
+	return static_cast<size_type>(0xffffffffUL / sizeof(T));
 }
 
 template <typename T, typename Allocator>
@@ -325,12 +431,144 @@ Vector<T, Allocator>::capacity() const noexcept
 	return static_cast<size_type>(end_of_storage - elements);
 }
 
+template <typename T, typename Allocator>
+void Vector<T, Allocator>::reserve(size_type new_cap)
+{
+	if (new_cap <= capacity())
+		return ;
+	moveToNewChunk(new_cap);
+}
 
+template <typename T, typename Allocator>
+void Vector<T, Allocator>::shrink_to_fit()
+{
+	if (first_free != end_of_storage) {
+		moveToNewChunk(size());
+	}
+}
 
+template <typename T, typename Allocator>
+void Vector<T, Allocator>::clear() noexcept
+{
+	doDestroy(elements, first_free);
+	first_free = elements;
+}
 
+template <typename T, typename Allocator>
+typename Vector<T, Allocator>::iterator
+Vector<T, Allocator>::insert(const_iterator pos, const T& value)
+{
+	//
+}
+
+template <typename T, typename Allocator>
+typename Vector<T, Allocator>::iterator
+Vector<T, Allocator>::insert(const_iterator pos, T&& value)
+{
+	
+}
+
+template <typename T, typename Allocator>
+typename Vector<T, Allocator>::iterator
+Vector<T, Allocator>::insert(const_iterator pos, size_type count, const T& value)
+{
+	
+}
+
+template <typename T, typename Allocator>
+typename Vector<T, Allocator>::iterator
+Vector<T, Allocator>::insert(const_iterator pos, std::initializer_list<T> ilist)
+{
+	
+}
+
+template <typename T, typename Allocator>
+template <typename... Args>
+typename Vector<T, Allocator>::iterator
+Vector<T, Allocator>::emplace(const_iterator pos, Args&&... args)
+{
+	
+}
+
+template <typename T, typename Allocator>
+typename Vector<T, Allocator>::iterator
+Vector<T, Allocator>::erase(const_iterator pos)
+{
+	if (pos + 1 != end())
+		std::copy(pos+1, first_free, pos);
+	--first_free;
+	Allocator::destroy(first_free);
+	return static_cast<iterator>(pos);
+}
+
+template <typename T, typename Allocator>
+typename Vector<T, Allocator>::iterator
+Vector<T, Allocator>::erase(const_iterator first, const_iterator last)
+{
+	//
+}
+
+template <typename T, typename Allocator>	
+void Vector<T, Allocator>::push_back(const T& value)
+{
+	if (first_free != end_of_storage) {
+		Allocator::construct(first_free, value);
+	} else {
+		insert(cend(), value);
+	}
+}
+
+template <typename T, typename Allocator>
+void Vector<T, Allocator>::push_back(T&& value)
+{
+	emplace_back(std::move(value));
+}
+
+template <typename T, typename Allocator>
+template <typename... Args>
+void Vector<T, Allocator>::emplace_back(Args&&...args)
+{
+
+}
+
+template <typename T, typename Allocator>	
+void Vector<T, Allocator>::pop_back()
+{
+	if (first_free > elements) {
+		--first_free;
+		Allocator::destroy(first_free);
+	}
+}
+
+template <typename T, typename Allocator>
+void Vector<T, Allocator>::resize(size_type new_sz)
+{
+	resize(new_sz, T());
+}
+
+template <typename T, typename Allocator>
+void Vector<T, Allocator>::resize(size_type new_sz, const value_type& value)
+{
+	if (new_sz < size()) {
+		erase(elements + new_sz, cend());
+	} else {
+		insert(cend(), new_sz - size(), value);
+	}
+}
+
+template <typename T, typename Allocator>
+void Vector<T, Allocator>::swap(Vector& rhs) noexcept
+{
+	using std::swap;
+	swap(elements, rhs.elements);
+	swap(first_free, rhs.first_free);
+	swap(end_of_storage, rhs.end_of_storage);
+}
+
+//  non-menber function
 
 template <typename T, typename Alloc>
-void swap(Vector<T, Alloc>& lhs, Vector<T, Alloc>& rhs)
+void swap(Vector<T, Alloc>& lhs, Vector<T, Alloc>& rhs) noexcept
 {
 	lhs.swap(rhs);
 }
@@ -383,5 +621,7 @@ bool operator>=(const Vector<T,Alloc>& lhs,
 {
 	
 }
+
+
 }
 #endif
