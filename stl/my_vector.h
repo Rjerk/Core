@@ -7,8 +7,8 @@
 #include <algorithm>
 #include <utility>
 #include <stdexcept>
-#include "vec_iterator.h"
 #include <iostream>
+
 using std::cout;
 using std::endl;
 using std::cerr;
@@ -30,14 +30,14 @@ public:
 	using const_reference = const value_type&;
 	using pointer = typename std::allocator_traits<Allocator>::pointer; // since C++11
 	using const_pointer = typename std::allocator_traits<Allocator>::const_pointer; // since C++11
-	using iterator = VecIterator<T>; // RandomAccessIterator
-	using const_iterator = VecIterator<const T>; // const RandomAccessIterator
+	using iterator = pointer; // RandomAccessIterator
+	using const_iterator = const_pointer; // const RandomAccessIterator
 	using reverse_iterator = std::reverse_iterator<iterator>;
 	using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 protected:
-	pointer elements;
-	pointer first_free;
-	pointer end_of_storage;
+	iterator elements;
+	iterator first_free;
+	iterator end_of_storage;
 	void fillAndInitialize(size_type n, const T& value)
 	{
 		elements = allocateAndFill(n, value);
@@ -50,7 +50,7 @@ protected:
 		std::uninitialized_fill_n(result, n, value);
 		return result;
 	}
-	void doDestroy(pointer beg, pointer end)
+	void doDestroy(iterator beg, iterator end)
 	{
 		if (beg != end) {
 			for ( ; beg != end ; ++beg)
@@ -71,6 +71,23 @@ protected:
 		elements = new_data;
 		first_free = new_first_free;
 		end_of_storage = elements + new_cap;
+	}
+	void copyBackward(const_iterator first, const_iterator last, const_iterator pos)
+	{
+		for ( ; last >= first; --last)
+			Allocator::construct(pos--, *last);
+	}
+	templacte <typename... Args>
+	void doInsert(const_iterator pos, Args&&... args)
+	{
+		if (first_free < end_of_storage) {
+			auto val = value_type(std::forward<Args>(args)...);
+			
+			
+			
+		} else if (first_free == end_of_storage) {
+			
+		}
 	}
 public:
 	explicit Vector(const Allocator& alloc_ = Allocator()) noexcept;
@@ -253,29 +270,30 @@ Vector<T, Allocator>::at(size_type pos)
 {
 	if (pos >= size())
 		throw std::out_of_range("Vector::at()");
-	return static_cast<reference>(*(elements+pos));
+	return *(elements+pos);
 }
 
 template <typename T, typename Allocator>
 typename Vector<T, Allocator>::const_reference
 Vector<T, Allocator>::at(size_type pos) const
-{if (pos >= size())
+{
+	if (pos >= size())
 		throw std::out_of_range("Vector::at()");
-	return static_cast<const_reference>(*(elements+pos));
+	return *(elements+pos);
 }
 
 template <typename T, typename Allocator>
 typename Vector<T, Allocator>::reference
 Vector<T, Allocator>::operator[](size_type pos)
 {
-	return static_cast<reference>(*(elements + pos));
+	return *(elements + pos);
 }
 
 template <typename T, typename Allocator>
 typename Vector<T, Allocator>::const_reference
 Vector<T, Allocator>::operator[](size_type pos) const
 {
-	return static_cast<const_reference>(*(elements + pos));
+	return *(elements + pos);
 }
 
 template <typename T, typename Allocator>
@@ -324,7 +342,7 @@ template <typename T, typename Allocator>
 typename Vector<T, Allocator>::iterator
 Vector<T, Allocator>::begin() noexcept
 {
-	return static_cast<iterator>(elements);
+	return elements;
 }
 
 template <typename T, typename Allocator>
@@ -345,7 +363,7 @@ template <typename T, typename Allocator>
 typename Vector<T, Allocator>::iterator
 Vector<T, Allocator>::end() noexcept
 {
-	return static_cast<iterator>(first_free);
+	return first_free;
 }
 
 template <typename T, typename Allocator>
@@ -436,6 +454,7 @@ void Vector<T, Allocator>::reserve(size_type new_cap)
 {
 	if (new_cap <= capacity())
 		return ;
+
 	moveToNewChunk(new_cap);
 }
 
@@ -451,21 +470,35 @@ template <typename T, typename Allocator>
 void Vector<T, Allocator>::clear() noexcept
 {
 	doDestroy(elements, first_free);
-	first_free = elements;
+	elements = first_free;
 }
 
 template <typename T, typename Allocator>
 typename Vector<T, Allocator>::iterator
 Vector<T, Allocator>::insert(const_iterator pos, const T& value)
 {
-	//
+	cout << "const T&\n";
+	if (first_free != end_of_storage) {
+		Allocator::construct(first_free, *(first_free-1));
+		++first_free;
+		copyBackward(pos, first_free-2, first_free-1);
+		Allocator::construct(pos, value);
+	}
 }
 
 template <typename T, typename Allocator>
 typename Vector<T, Allocator>::iterator
 Vector<T, Allocator>::insert(const_iterator pos, T&& value)
 {
-	
+	cout << "T&&\n";
+	if (first_free != end_of_storage) {
+		Allocator::construct(first_free, *(first_free-1));
+		++first_free;
+		copyBackward(pos, first_free-2, first_free-1);
+		Allocator::construct(pos, value);
+	} else {
+		
+	}
 }
 
 template <typename T, typename Allocator>
@@ -487,7 +520,14 @@ template <typename... Args>
 typename Vector<T, Allocator>::iterator
 Vector<T, Allocator>::emplace(const_iterator pos, Args&&... args)
 {
-	
+	auto n = first_free - pos;
+	if ((first_free == capacity) || (pos < end_of_storage)) {
+		// ...
+	} else {
+		::new ((void*)first_free) value_type(std::forward<Args>(args)...);
+		++first_free;
+	}
+	// ...
 }
 
 template <typename T, typename Allocator>
