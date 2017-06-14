@@ -1,0 +1,21 @@
+(defun c:pbox()
+  (setvar "cmdecho" 0)
+  (setq pa (getpoint "get left-corner pointer:"))
+  (setq ww (getdist pa "\nrectangle-width:"))
+  (setq hh (getdist pa "\nrectangle-height"))
+  ; calculate pb, pc, pd by pa, ww, hh
+  (setq pb (polar pa 0 ww))
+  (setq pc (polar pb (/ pi 2) hh))
+  (setq pd (polar pc pi ww))
+  (command "pline" pa pb pc pd "c") ; ±ÕºÏÑ¡Ïîc
+  (setq mp1 (polar pa 0 (/ ww 2)))
+  (setq mp2 (polar pb (/ pi 2) (/ hh 2)))
+  (setq mp3 (polar pd 0 (/ ww 2)))
+  (setq mp4 (polar pa (/ pi 2) (/ hh 2)))
+  (command "line" mp1 mp3 "")
+  (command "line" mp2 mp4 "")
+  (prin1)
+)
+
+(prompt "\n<<This is my first program.\n")
+(prin1)
