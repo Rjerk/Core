@@ -1,0 +1,5 @@
+(setq score (getreal "enter AutoCAD score:"))
+(cond ((= score 100) (princ "\nOMG..."))
+      ((>= score 80) (princ "\nGreate..."))
+      (t (princ "\nNot bad..."))
+)
