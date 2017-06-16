@@ -121,4 +121,28 @@ int main()
 		cout << v.size() << " " << v.capacity() << "\n";
 		q(v);
 	}
+	{
+		cout << "\ninsert\n";
+		Vector<int> v;
+		v.reserve(10);
+		v.assign({1, 2, 3});
+		int a = 10;
+		cout << v.size() << " " << v.capacity() << "\n";
+		v.insert(v.begin(), 1);
+		cout << v.size() << " " << v.capacity() << "\n";
+		q(v);
+		v.insert(v.end()-1, 10, 4);
+		q(v);
+	}
+	{
+		cout << "\nerase\n";
+		Vector<int> v = {1, 3, 5, 7, 9};
+		v.erase(v.begin()+1);
+		q(v);
+		v.erase(v.begin(), v.end());
+		cout << v.size() << endl;
+	}
+	{
+		cout << "\n\n";
+	}
 }
