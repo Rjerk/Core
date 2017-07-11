@@ -79,6 +79,15 @@ void Socket::setReuseAddr(bool on)
     }
 }
 
+void Socket::setTcpNoDelay(bool on)
+{
+    int optval = on ? 1 : 0;
+    if (::setsockopt(sockfd, IPPROTO_TCP, TCP_NODELAY,
+                    &optval, static_cast<socklen_t>(sizeof(optval))) < 0) {
+        perror("Socket::setTcpNoDelay");
+    }
+}
+
 InetAddress Socket::getLocalAddr() const
 {
     struct sockaddr_in localaddr;
