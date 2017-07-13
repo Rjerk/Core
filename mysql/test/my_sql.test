@@ -1,0 +1,47 @@
+#include <string>
+#include <iostream>
+#include <mysql/mysql.h>
+
+#define SERVER "HOST"
+#define USER "USER"
+#define PASSWORD "PSWD"
+#define DATABASE "example"
+
+int main()
+{
+    MYSQL* connection = mysql_init(NULL);
+    if (!connection) {
+        std::cout << "MySQL initialization failed.\n";
+        return -1;
+    }
+    connection = mysql_real_connect(connection, "localhost", "root",
+                                       "1q23lyc45j", "example", 0, NULL, 0);
+    if (connection) {
+        std::cout << "connection suceessed.\n";
+    } else {
+        std::cout << "connection failed.\n";
+    }
+    MYSQL_RES* res_set;
+    MYSQL_ROW row;
+
+    if (mysql_query(connection, "select * from exam_info")) {
+        std::cout << "query error." << std::endl;
+        return -1;
+    }
+
+    res_set = mysql_store_result(connection);
+    for (unsigned i = 0; i < mysql_field_count(connection); ++i) {
+        row = mysql_fetch_row(res_set);
+        if (row == nullptr) {
+            break;
+        }
+        for (unsigned j = 0; j < mysql_num_fields(res_set); ++j) {
+            std::cout << row[j] << " ";
+        }
+        std::cout << std::endl;
+    }
+
+
+    mysql_close(connection);
+    return 0;
+}
