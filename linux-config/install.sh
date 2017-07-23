@@ -27,6 +27,12 @@ sudo apt-get install nodejs npm
 sudo npm install -g jslint
 sudo npm install jshint -g
 
+git clone https://github.com/wklken/k-vim.git
+cd k-vim
+sh -x install.sh
+
+# remove k-vim: cd ~ && rm -rf .vim .vimrc .vimrc.bundles && cd -
+
 sudo apt-get install -y curl
 curl -sL https://deb.nodesource.com/setup_7.x | sudo -E bash -
 sudo apt-get install -y nodejs
@@ -35,15 +41,7 @@ sudo apt-get install -y build-essential
 echo "---install hexo---";
 sudo npm isntall -g hexo-cli
 
-echo "---install sublime text3---";
-wget -qO - https://download.sublimetext.com/sublimehq-pub.gpg | sudo apt-key add -
-echo "deb https://download.sublimetext.com/ apt/dev/" | sudo tee /etc/apt/sources.list.d/sublime-text.list
-sudo apt update && sudo apt install -y sublime-text
-
 echo "dependency for nginx"
 sudo apt-get -y install libpcre3 libpcre3-dev
 sudo apt-get install zlib1g-dev
-
-
-
 
