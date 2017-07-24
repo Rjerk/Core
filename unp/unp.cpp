@@ -178,3 +178,24 @@ void Inet_pton(int family, const char *strptr, void *addrptr)
     }
     return;
 }
+
+int Poll(struct pollfd* fdarray, unsigned long nfds, int timeout)
+{
+    int n;
+    if ((n = poll(fdarray, nfds, timeout)) < 0) {
+        err_sys("poll error");
+    }
+    return(n);
+}
+
+long open_max(void)
+{
+    long openmax = 0;
+    if ((openmax = sysconf(_SC_OPEN_MAX)) < 0) {
+        openmax = OPEN_MAX_GUESS;
+    } else {
+        err_sys("sysconf error for _SC_OPEN_MAX");
+    }
+    return(openmax);
+}
+

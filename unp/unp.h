@@ -48,9 +48,7 @@
 # include	<sys/sysctl.h>
 #endif
 
-#ifdef	HAVE_POLL_H
 # include	<poll.h>		/* for convenience */
-#endif
 
 #ifdef	HAVE_SYS_EVENT_H
 # include	<sys/event.h>	/* for kqueue */
@@ -493,9 +491,7 @@ int		 Kevent(int, const struct kevent *, int,
 				struct kevent *, int, const struct timespec *);
 #endif
 void	 Listen(int, int);
-#ifdef	HAVE_POLL
 int		 Poll(struct pollfd *, unsigned long, int);
-#endif
 ssize_t	 Readline(int, void *, size_t);
 ssize_t	 Readn(int, void *, size_t);
 ssize_t	 Recv(int, void *, size_t, int);
@@ -522,5 +518,9 @@ template <typename To, typename From>
 inline To implicit_cast(From const& f) {
     return f;
 }
+
+#define OPEN_MAX_GUESS 256
+
+long open_max(void);
 
 #endif	/* __unp_h */
