@@ -3,7 +3,7 @@
 int main(int argc, char** argv)
 {
     if (argc != 2) {
-        err_quit("Usage: ./tcpserver_select01 port");
+        err_quit("Usage: ./tcpserverselect01 port");
     }
 
     struct sockaddr_in servaddr, clntaddr;
