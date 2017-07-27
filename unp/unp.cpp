@@ -3,20 +3,27 @@
 #include <stdarg.h>
 #include <arpa/inet.h>
 
+int daemon_proc; // set nonzero by deamon_init()
+
 // print a message and return to caller.
 // caller specifies "errnoflag".
-static void err_doit(int errnoflag, const char* fmt, va_list ap)
+static void err_doit(int errnoflag, int level, const char* fmt, va_list ap)
 {
     int errno_save = errno; // value called might want printed.
-    char buf[MAXLINE];
-    vsprintf(buf, fmt, ap);
+    char buf[MAXLINE+1];
+    vsnprintf(buf, MAXLINE, fmt, ap);
     if (errnoflag) {
-        sprintf(buf+strlen(buf), ": %s", strerror(errno_save));
+        snprintf(buf+strlen(buf), MAXLINE-strlen(buf), ": %s", strerror(errno_save));
     }
     strcat(buf, "\n");
-    fflush(stdout); // in case stdout and stderr are the same.
-    fputs(buf, stderr);
-    fflush(stderr);
+    if (daemon_proc) {
+        const char* b = buf;
+        syslog(level, b);
+    } else {
+        fflush(stdout); // in case stdout and stderr are the same.
+        fputs(buf, stderr);
+        fflush(stderr);
+    }
     return;
 }
 
@@ -26,7 +33,7 @@ void err_quit(const char* fmt, ...)
 {
     va_list ap;
     va_start(ap, fmt);
-    err_doit(0, fmt, ap);
+    err_doit(0, LOG_ERR, fmt, ap);
     va_end(ap);
     exit(1);
 }
@@ -37,7 +44,7 @@ void err_ret(const char* fmt, ...)
 {
     va_list ap;
     va_start(ap, fmt);
-    err_doit(1, fmt, ap);
+    err_doit(1, LOG_INFO, fmt, ap);
     va_end(ap);
     return;
 }
@@ -48,7 +55,7 @@ void err_sys(const char* fmt, ...)
 {
     va_list ap;
     va_start(ap, fmt);
-    err_doit(1, fmt, ap);
+    err_doit(1, LOG_ERR, fmt, ap);
     va_end(ap);
     exit(1);
 }
@@ -59,7 +66,7 @@ void err_dump(const char* fmt, ...)
 {
     va_list ap;
     va_start(ap, fmt);
-    err_doit(1, fmt, ap);
+    err_doit(1, LOG_ERR, fmt, ap);
     va_end(ap);
     abort(); // dump core and terminate.
     exit(1); // not get here.
@@ -70,7 +77,7 @@ void err_msg(const char* fmt, ...)
 {
     va_list ap;
     va_start(ap, fmt);
-    err_doit(0, fmt, ap);
+    err_doit(0, LOG_INFO, fmt, ap);
     va_end(ap);
     return;
 }

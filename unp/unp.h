@@ -10,6 +10,7 @@
 /* If anything changes in the following list of #includes, must change
    acsite.m4 also, for configure's tests. */
 
+#include    <syslog.h>
 #include    <sys/mman.h>
 #include    <sys/ioctl.h>
 #include	<sys/types.h>	/* basic system data types */
@@ -238,10 +239,6 @@ typedef	void	Sigfunc(int);	/* for signal handlers */
 
 #define	min(a,b)	((a) < (b) ? (a) : (b))
 #define	max(a,b)	((a) > (b) ? (a) : (b))
-
-#ifndef	HAVE_ADDRINFO_STRUCT
-//# include	"../lib/addrinfo.h"
-#endif
 
 #ifndef	HAVE_IF_NAMEINDEX_STRUCT
 struct if_nameindex {
