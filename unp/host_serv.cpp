@@ -16,3 +16,9 @@ struct addrinfo* host_serv(const char* host, const char* serv,
     }
     return res;
 }
+
+struct addrinfo* Host_serv(const char* host, const char* serv,
+                            int family, int socktype)
+{
+    return host_serv(host, serv, family, socktype);
+}
