@@ -241,10 +241,12 @@ typedef	void	Sigfunc(int);	/* for signal handlers */
 #define	max(a,b)	((a) > (b) ? (a) : (b))
 
 #ifndef	HAVE_IF_NAMEINDEX_STRUCT
+/*
 struct if_nameindex {
-  unsigned int   if_index;  /* 1, 2, ... */
-  char          *if_name;   /* null-terminated name: "le0", ... */
+  unsigned int   if_index;  // 1, 2, ...
+  char          *if_name;   // null-terminated name: "le0", ...
 };
+*/
 /* $$.It if_nameindex$$ */
 /* $$.Ib if_index$$ */
 /* $$.Ib if_name$$ */
@@ -369,10 +371,12 @@ const char	*hstrerror(int);
 #endif
 
 #ifndef	HAVE_IF_NAMETOINDEX_PROTO
+/*
 unsigned int	 if_nametoindex(const char *);
 char			*if_indextoname(unsigned int, char *);
 void			 if_freenameindex(struct if_nameindex *);
 struct if_nameindex *if_nameindex(void);
+*/
 #endif
 
 #ifndef	HAVE_INET_PTON_PROTO
