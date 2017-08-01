@@ -6,6 +6,7 @@ void send_all(int, SA *, socklen_t);
 int main(int argc, char** argv)
 {
     if (argc != 3) {
+        // ./sendrecv 239.255.1.2 8888
         err_quit("usage: ./sendrecv <IP-multicast-address> <port>");
     }
 
