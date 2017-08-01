@@ -311,7 +311,6 @@ int		 writable_timeo(int, int);
 ssize_t	 writen(int, const void *, size_t);
 ssize_t	 write_fd(int, void *, size_t, int);
 
-#ifdef	MCAST
 int		 mcast_leave(int, const SA *, socklen_t);
 int		 mcast_join(int, const SA *, socklen_t, const char *, u_int);
 int		 mcast_leave_source_group(int sockfd, const SA *src, socklen_t srclen,
@@ -347,7 +346,6 @@ int		 Mcast_get_ttl(int);
 void	 Mcast_set_if(int, const char *, u_int);
 void	 Mcast_set_loop(int, int);
 void	 Mcast_set_ttl(int, int);
-#endif
 
 uint16_t	in_cksum(uint16_t *, int);
 
