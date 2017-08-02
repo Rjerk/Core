@@ -83,5 +83,7 @@ ssize_t Dg_send_recv(int fd, const void* outbuff, size_t outsize,
     return dg_send_recv(fd, outbuff, outsize, inbuff, inbytes, destaddr, destlen);
 }
 
-
-
+static void sig_alrm(int)
+{
+    siglongjmp(jmpbuf, 1);
+}
