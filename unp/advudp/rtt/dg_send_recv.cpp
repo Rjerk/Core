@@ -5,7 +5,7 @@
 
 static struct rtt_info rttinfo;
 static int rttinit = 0;
-static struct msghdr msgsend, msgrecv;
+static struct msghdr msgsend, msgrecv; // assumed init to 0.
 static struct hdr {
     uint32_t seq; // sequence.
     uint32_t ts; // timestamp when sent.
@@ -25,7 +25,7 @@ ssize_t dg_send_recv(int fd, const void* outbuff, size_t outbytes,
     }
 
     ++sendhdr.seq;
-
+    printf("sendhrd.seq: %d\n", sendhdr.seq);
     struct iovec iovsend[2], iovrecv[2];
     msgsend.msg_name = (void *) destaddr;
     msgsend.msg_namelen = destlen;
@@ -68,6 +68,7 @@ sendagain:
 
     do {
         n = Recvmsg(fd, &msgrecv, 0);
+        printf("recvmsg: %ld\n", n);
     } while (n < (ssize_t) sizeof(struct hdr) || recvhdr.seq != sendhdr.seq);
 
     alarm(0); // stop SIGALRM timer.
