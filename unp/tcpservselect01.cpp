@@ -34,7 +34,7 @@ int main(int argc, char** argv)
         if (FD_ISSET(listenfd, &rset)) { // new client connection.
             socklen_t clntlen = sizeof(clntaddr);
             int connfd = Accept(listenfd, (SA *) &clntaddr, &clntlen);
-            connfd += 4;
+
             char buf[MAXLINE];
             printf ("new client: %s, port: %d\n",
                     Inet_ntop(AF_INET, &clntaddr.sin_addr, buf, sizeof(buf)),

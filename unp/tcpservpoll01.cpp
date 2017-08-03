@@ -33,7 +33,6 @@ int main(int argc, char** argv)
         if (client[0].revents & POLLIN) {
             socklen_t clntlen = sizeof(clntaddr);
             int connfd = Accept(listenfd, (SA *) &clntaddr, &clntlen);
-            connfd += 4;
             printf ("connfd: %d\n", connfd);
             char buf[MAXLINE];
             printf ("new client: %s, port: %d\n",

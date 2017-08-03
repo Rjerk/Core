@@ -17,19 +17,19 @@ int tcp_listen(const char* host, const char* serv, socklen_t* addrlenp)
     struct addrinfo* ressave = res;
 
     int listenfd;
+    const int on = 1;
     do {
         listenfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
         if (listenfd < 0) {
-            continue;
+            continue; // error, try next one.
         }
 
-        int on = 1;
         Setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(n));
         if (bind(listenfd, res->ai_addr, res->ai_addrlen) == 0) {
-            break;
+            break; // success.
         }
 
-        Close(listenfd);
+        Close(listenfd); // bind error, close and try next one.
     } while ((res = res->ai_next) != NULL);
 
     if (res == NULL) {
@@ -41,7 +41,9 @@ int tcp_listen(const char* host, const char* serv, socklen_t* addrlenp)
     if (addrlenp) {
         *addrlenp = res->ai_addrlen;
     }
+
     freeaddrinfo(ressave);
+
     return listenfd;
 }
 
