@@ -32,6 +32,7 @@ int main(int argc, char** argv)
         int i;
 
         if (FD_ISSET(listenfd, &rset)) { // new client connection.
+
             socklen_t clntlen = sizeof(clntaddr);
             int connfd = Accept(listenfd, (SA *) &clntaddr, &clntlen);
 
