@@ -2,8 +2,7 @@
 
 void sig_chld(int);
 
-void
-str_echo(int sockfd)
+void str_echo(int sockfd)
 {
 	heartbeat_serv(sockfd, 1, 5);
 
@@ -17,8 +16,7 @@ str_echo(int sockfd)
 	}
 }
 
-int
-main(int argc, char **argv)
+int main(int argc, char **argv)
 {
     if (argc != 2) {
         err_quit("usage: ./serv <port>");
