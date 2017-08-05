@@ -1,8 +1,9 @@
 #ifndef MUTEX_LOCK_H
 #define MUTEX_LOCK_H
 
-#inclue "noncopyable.h"
-#include "current_thread.h"
+#include "noncopyable.h"
+#include "thread.h"
+
 #include <pthread.h>
 #include <assert.h>
 
@@ -61,4 +62,4 @@ private:
 
 #define MutexLockGuard(x) static_assert(false, "missing mutex guard var name.")
 
-#endif MUTEX_LOCK_H
+#endif

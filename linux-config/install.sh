@@ -45,3 +45,8 @@ echo "dependency for nginx"
 sudo apt-get -y install libpcre3 libpcre3-dev
 sudo apt-get install zlib1g-dev
 
+echo "man"
+sudo apt-get -y install manpages-dev manpages-posix manpages-posix-dev libstdc++-6-doc glibc-doc 
+
+echo "valgind"
+sudo apt-get -y install valgrind

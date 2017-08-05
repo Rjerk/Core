@@ -2,12 +2,12 @@
 #define NON_COPYABLE_H
 
 class noncopyable {
-private:
+protected:
     noncopyable() = default;
     ~noncopyable() = default;
-protectedd:
+private:
     noncopyable(const noncopyable&) = delete;
-    void operator=(const noncopyable&) = delete;
+    noncopyable& operator=(const noncopyable&) = delete;
 };
 
-#endif NON_COPYABLE_H
+#endif
