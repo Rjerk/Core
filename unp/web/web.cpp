@@ -61,13 +61,6 @@ void write_get_cmd(struct file* fptr)
 
     Write(fptr->f_fd, line, n);
     printf("wrote %d bytes for %s\n", n, fptr->f_name);
-
-    fptr->f_flags = F_READING;
-
-    FD_SET(fptr->f_fd, &rset); // will read server reply.
-    if (fptr->f_fd > maxfd) {
-        maxfd = fptr->f_fd;
-    }
 }
 
 int main(int argc, char** argv)
