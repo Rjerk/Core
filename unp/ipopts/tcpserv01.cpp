@@ -27,6 +27,7 @@ int main()
     for ( ; ; ) {
         clilen = sizeof(cliaddr);
         if ((connfd = accept(listenfd, (SA *) &cliaddr, &clilen)) < 0) {
+            printf("accepted\n");
             if (errno == EINTR)
                 continue;       /* back to for() */
             else

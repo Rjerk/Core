@@ -49,7 +49,7 @@ int main(int argc, char** argv)
         Setsockopt(sockfd, IPPROTO_IP, IP_OPTIONS, ptr, len);
         free(ptr);
     }
-
+    printf("sockfd: %d\n", sockfd);
     Connect(sockfd, ai->ai_addr, ai->ai_addrlen);
 
     str_cli(stdin, sockfd);
