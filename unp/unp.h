@@ -513,5 +513,7 @@ inline To implicit_cast(From const& f) {
 #define OPEN_MAX_GUESS 256
 
 long open_max(void);
+int gn_ipv46(char *host, size_t hostlen, char *serv, size_t servlen,
+             void *aptr, size_t alen, int family, int port, int flags);
 
 #endif	/* __unp_h */
