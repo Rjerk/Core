@@ -159,7 +159,7 @@ ssize_t Read(int fd, void *ptr, size_t nbytes)
 	return(n);
 }
 
-const char* Inet_ntop(int family, const void *addrptr, char *strptr, socklen_t len)
+const char* Inet_ntop(int family, const void *addrptr, char *strptr, size_t len)
 {
     const char *ptr;
     if (strptr == NULL) {     /* check for old code */

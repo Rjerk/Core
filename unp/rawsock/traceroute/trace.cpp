@@ -12,7 +12,7 @@ struct proto proto_v6 = { icmpcode_v6, recv_v6, NULL, NULL, NULL, NULL, 0,
 };
 #endif
 
-int gotalarm;
+int gotalarm = 0;
 
 void
 sig_alrm(int)
@@ -273,14 +273,14 @@ traceloop(void)
 
     seq = 0;
     done = 0;
-    for (ttl = 1; ttl <= max_ttl && done == 0; ttl++) {
+    for (ttl = 1; ttl <= max_ttl && done == 0; ++ttl) {
         Setsockopt(sendfd, pr->ttllevel, pr->ttloptname, &ttl, sizeof(int));
         bzero(pr->salast, pr->salen);
 
         printf("%2d ", ttl);
         fflush(stdout);
 
-        for (probe = 0; probe < nprobes; probe++) {
+        for (probe = 0; probe < nprobes; ++probe) {
             rec = (struct rec *) sendbuf;
             rec->rec_seq = ++seq;
             rec->rec_ttl = ttl;
@@ -306,7 +306,7 @@ traceloop(void)
                 printf("  %.3f ms", rtt);
 
                 if (code == -1)     /* port unreachable; at destination */
-                    done++;
+                    ++done;
                 else if (code >= 0)
                     printf(" (ICMP %s)", (*pr->icmpcode)(code));
             }
