@@ -28,7 +28,7 @@ public:
     void charset(const std::string& cs);
 
 private:
-    std::unique_ptr<MYSQL> conn_;
+    MYSQL* conn_; // owner.
 };
 
 
