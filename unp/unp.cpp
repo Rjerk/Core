@@ -459,13 +459,13 @@ void* Malloc(size_t size)
 	return(ptr);
 }
 
-/*
+
 int Mkstemp(char *template_)
 {
 	int i;
 
 #ifdef HAVE_MKSTEMP
-	if ((i = mkstemp(template)) < 0)
+	if ((i = mkstemp(template_)) < 0)
 		err_quit("mkstemp error");
 #else
 	if (mktemp(template_) == NULL || template_[0] == 0)
@@ -475,7 +475,7 @@ int Mkstemp(char *template_)
 
 	return i;
 }
-*/
+
 
 void* Mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 {
