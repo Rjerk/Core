@@ -1,0 +1,40 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "PutObject-Tagging",
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": "*"
+            },
+            "Action": [
+                "s3:PutObjectTagging",
+                "s3:PutObjectVersionTagging"
+            ],
+            "Resource": [
+                "arn:aws:s3:::tag-test/*",
+                "arn:aws:s3:::tag-test"
+            ],
+            "Condition": {
+                "StringEquals": {
+                    "s3:RequestObjectTag/Project": "X"
+                }
+            }
+        },
+        {
+            "Sid": "GetObject-Tagging",
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": "*"
+            },
+            "Action": [
+                "s3:GetObjectTagging",
+                "s3:GetObjectVersionTagging"
+            ],
+            "Resource": [
+                "arn:aws:s3:::tag-test/*",
+                "arn:aws:s3:::tag-test"
+            ]
+        }
+    ]
+}
