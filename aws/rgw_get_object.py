@@ -7,7 +7,7 @@ authv2 = S3Auth('admin',
                 'admin',
                 '10.9.34.206:8000')
 
-def get_object(bucket, obj, versionid):
+def get_object(bucket, obj, versionid='null'):
     url = 'http://10.9.34.206:8000/' + bucket + '/' + obj
     resp = requests.get(url=url,
                         params={'versionId': versionid},
@@ -17,4 +17,4 @@ def get_object(bucket, obj, versionid):
     print resp.headers
 
 
-get_object('tag-test', 'test')
+get_object('tag-test', 'bobo')

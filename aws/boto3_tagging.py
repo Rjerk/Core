@@ -20,6 +20,12 @@ import boto3
 
 client = boto3.client('s3')
 
+resp = client.put_object(Body='123',
+                         Bucket='s3-obj-tagging-test',
+                         Key='put-obj-test',
+                         Tagging='two=2&Project=X'
+                         )
+
 # response = client.get_object_tagging(Bucket='s3-obj-tagging-test',
 #                                      Key='test-s3-file',
 #                                      VersionId='eVQkyDiNOUF.ipmMi7Tawtk5GQslpHtK')
@@ -30,14 +36,14 @@ client = boto3.client('s3')
 #                                         VersionId='jk.ArjftY0Htz7weCNXNhX34YmSzJo73')
 # print response
 
-response = client.put_object_tagging(Bucket='s3-obj-tagging-test',
-                                     Key='test-s3-file',
-                                     Tagging={
-                                        'TagSet': [
-                                            { 'Key': 'Owner1', 'Value': '1'}
-                                        ]
-                                     })
-print response
+# response = client.put_object_tagging(Bucket='s3-obj-tagging-test',
+#                                      Key='test-s3-file',
+#                                      Tagging={
+#                                         'TagSet': [
+#                                             { 'Key': 'Owner1', 'Value': '1'}
+#                                         ]
+#                                      })
+# print response
 
 # response = client.get_object_tagging(Bucket='s3-obj-tagging-test',
 #                                      Key='test-s3-file')

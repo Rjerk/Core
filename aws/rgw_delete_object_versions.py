@@ -6,8 +6,8 @@ from mimetools import Message
 from StringIO import StringIO
 import json
 
-authv2 = S3Auth('admin',
-                'admin',
+authv2 = S3Auth('ACCEE-KEY',
+                'SECRET-KEY',
                 '10.9.34.206:8000')
 
 

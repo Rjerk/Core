@@ -18,4 +18,4 @@ def get_version_id(bucket, obj):
         print "versionid never be set."
 
 
-get_version_id('tag-test', 'test')
+get_version_id('tag-test', 'bobo')
