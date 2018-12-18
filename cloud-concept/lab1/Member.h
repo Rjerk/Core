@@ -28,31 +28,29 @@ public:
  */
 class Address {
 public:
-	char addr[6];
-	Address() {}
+  int id_;
+  int port_;
+	Address() = default;
 	// Copy constructor
-	Address(const Address &anotherAddress);
+	Address(const Address &);
 	 // Overloaded = operator
-	Address& operator =(const Address &anotherAddress);
-	bool operator ==(const Address &anotherAddress);
+	Address& operator=(const Address &);
+	bool operator==(const Address &);
 
-	Address(std::string address) {
+	explicit Address(std::string address) {
 		size_t pos = address.find(":");
-		int id = stoi(address.substr(0, pos));
-		short port = (short)stoi(address.substr(pos + 1, address.size()-pos-1));
-		memcpy(&addr[0], &id, sizeof(int));
-		memcpy(&addr[4], &port, sizeof(short));
+
+		id_ = stoi(address.substr(0, pos));
+		port_ = stoi (address.substr(pos + 1, address.size()-pos-1));
 	}
 
   std::string getAddress() {
-		int id = 0;
-		short port;
-		memcpy(&id, &addr[0], sizeof(int));
-		memcpy(&port, &addr[4], sizeof(short));
-		return std::to_string(id) + ":" + std::to_string(port);
+		return std::to_string(id_) + ":" + std::to_string(port_);
 	}
+
 	void init() {
-		memset(&addr, 0, sizeof(addr));
+    id_ = 0;
+    port_ = 0;
 	}
 };
 
@@ -63,23 +61,28 @@ public:
  */
 class MemberListEntry {
 public:
-	int id;
-	short port;
-	long heartbeat;
-	long timestamp;
+	int id_;
+	short port_;
+	long heartbeat_;
+	long timestamp_;
+
+	MemberListEntry() = default;
+	explicit MemberListEntry(const MemberListEntry &);
+
 	MemberListEntry(int id, short port, long heartbeat, long timestamp);
 	MemberListEntry(int id, short port);
-	MemberListEntry(): id(0), port(0), heartbeat(0), timestamp(0) {}
-	MemberListEntry(const MemberListEntry &anotherMLE);
-	MemberListEntry& operator =(const MemberListEntry &anotherMLE);
-	int getid();
-	short getport();
-	long getheartbeat();
-	long gettimestamp();
-	void setid(int id);
-	void setport(short port);
-	void setheartbeat(long hearbeat);
-	void settimestamp(long timestamp);
+
+	MemberListEntry& operator=(const MemberListEntry &);
+
+	int getid() const { return id_; }
+	short getport() const { return port_; }
+	long getheartbeat() const { return heartbeat_; }
+	long gettimestamp() const { return timestamp_; }
+
+	void setid(int id) { id_ = id; }
+	void setport(short port) { port_ = port; }
+	void setheartbeat(long hearbeat) { heartbeat_ = hearbeat; }
+	void settimestamp(long timestamp) { timestamp_ = timestamp; }
 };
 
 /**
@@ -91,35 +94,36 @@ public:
 class Member {
 public:
 	// This member's Address
-	Address addr;
+	Address addr_;
 	// boolean indicating if this member is up
-	bool inited;
+	bool inited_{false};
 	// boolean indicating if this member is in the group
-	bool inGroup;
+	bool in_group_{false};
 	// boolean indicating if this member has failed
-	bool bFailed;
+	bool failed_{false};
 	// number of my neighbors
-	int nnb;
+	int nnb_{0};
 	// the node's own heartbeat
-	long heartbeat;
+	long heartbeat_{0};
 	// counter for next ping
-	int pingCounter;
+	int ping_counter_{0};
 	// counter for ping timeout
-	int timeOutCounter;
+	int timeout_counter_{0};
 	// Membership table
-  std::vector<MemberListEntry> memberList;
+  std::vector<MemberListEntry> member_list_;
 	// My position in the membership table
-  std::vector<MemberListEntry>::iterator myPos;
+  std::vector<MemberListEntry>::iterator my_pos_;
+
 	// Queue for failure detection messages
   std::queue<q_elt> mp1q;
 	/**
 	 * Constructor
 	 */
-	Member(): inited(false), inGroup(false), bFailed(false), nnb(0), heartbeat(0), pingCounter(0), timeOutCounter(0) {}
-	// copy constructor
-	Member(const Member &anotherMember);
-	// Assignment operator overloading
-	Member& operator =(const Member &anotherMember);
+  Member() = default;
+
+	Member(const Member &);
+	Member& operator=(const Member &);
+
 	virtual ~Member() {}
 };
 

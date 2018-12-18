@@ -14,164 +14,75 @@ q_elt::q_elt(void *elt, int size): elt(elt), size(size) {}
 /**
  * Copy constructor
  */
-Address::Address(const Address &anotherAddress) {
-	// strcpy(addr, anotherAddress.addr);
-	memcpy(&addr, &anotherAddress.addr, sizeof(addr));
+Address::Address(const Address &another_address) {
+  id_ = another_address.id_;
+  port_ = another_address.port_;
 }
 
 /**
  * Assignment operator overloading
  */
-Address& Address::operator =(const Address& anotherAddress) {
-	// strcpy(addr, anotherAddress.addr);
-	memcpy(&addr, &anotherAddress.addr, sizeof(addr));
+Address& Address::operator=(const Address& another_address) {
+  id_ = another_address.id_;
+  port_ = another_address.port_;
 	return *this;
 }
 
-/**
- * Compare two Address objects
- * Return true/non-zero if they have the same ip address and port number 
- * Return false/zero if they are different 
- */
-bool Address::operator ==(const Address& anotherAddress) {
-	return !memcmp(this->addr, anotherAddress.addr, sizeof(this->addr));
+bool Address::operator==(const Address& another_address) {
+  return id_ == another_address.id_ 
+      && port_ == another_address.port_;
 }
 
-/**
- * Constructor
- */
-MemberListEntry::MemberListEntry(int id, short port, long heartbeat, long timestamp): id(id), port(port), heartbeat(heartbeat), timestamp(timestamp) {}
-
-/**
- * Constuctor
- */
-MemberListEntry::MemberListEntry(int id, short port): id(id), port(port) {}
-
-/**
- * Copy constructor
- */
-MemberListEntry::MemberListEntry(const MemberListEntry &anotherMLE) {
-	this->heartbeat = anotherMLE.heartbeat;
-	this->id = anotherMLE.id;
-	this->port = anotherMLE.port;
-	this->timestamp = anotherMLE.timestamp;
+MemberListEntry::MemberListEntry(int id, short port, long heartbeat, long timestamp):
+  id_{id}, port_{port}, heartbeat_{heartbeat}, timestamp_{timestamp}
+{
 }
 
-/**
- * Assignment operator overloading
- */
-MemberListEntry& MemberListEntry::operator =(const MemberListEntry &anotherMLE) {
-	MemberListEntry temp(anotherMLE);
-  std::swap(heartbeat, temp.heartbeat);
-	std::swap(id, temp.id);
-	std::swap(port, temp.port);
-	std::swap(timestamp, temp.timestamp);
+MemberListEntry::MemberListEntry(int id, short port): id_{id}, port_{port}
+{
+}
+
+MemberListEntry::MemberListEntry(const MemberListEntry &another_MLE) {
+	this->heartbeat_ = another_MLE.heartbeat_;
+	this->id_ = another_MLE.id_;
+	this->port_ = another_MLE.port_;
+	this->timestamp_ = another_MLE.timestamp_;
+}
+
+MemberListEntry& MemberListEntry::operator=(const MemberListEntry &another_MLE) {
+	MemberListEntry temp(another_MLE);
+  std::swap(heartbeat_, temp.heartbeat_);
+	std::swap(id_, temp.id_);
+	std::swap(port_, temp.port_);
+	std::swap(timestamp_, temp.timestamp_);
 	return *this;
 }
 
-/**
- * FUNCTION NAME: getid
- *
- * DESCRIPTION: getter
- */
-int MemberListEntry::getid() {
-	return id;
-}
-
-/**
- * FUNCTION NAME: getport
- *
- * DESCRIPTION: getter
- */
-short MemberListEntry::getport() {
-	return port;
-}
-
-/**
- * FUNCTION NAME: getheartbeat
- *
- * DESCRIPTION: getter
- */
-long MemberListEntry::getheartbeat() {
-	return heartbeat;
-}
-
-/**
- * FUNCTION NAME: gettimestamp
- *
- * DESCRIPTION: getter
- */
-long MemberListEntry::gettimestamp() {
-	return timestamp;
-}
-
-/**
- * FUNCTION NAME: setid
- *
- * DESCRIPTION: setter
- */
-void MemberListEntry::setid(int id) {
-	this->id = id;
-}
-
-/**
- * FUNCTION NAME: setport
- *
- * DESCRIPTION: setter
- */
-void MemberListEntry::setport(short port) {
-	this->port = port;
-}
-
-/**
- * FUNCTION NAME: setheartbeat
- *
- * DESCRIPTION: setter
- */
-void MemberListEntry::setheartbeat(long hearbeat) {
-	this->heartbeat = hearbeat;
-}
-
-/**
- * FUNCTION NAME: settimestamp
- *
- * DESCRIPTION: setter
- */
-void MemberListEntry::settimestamp(long timestamp) {
-	this->timestamp = timestamp;
-}
-
-/**
- * Copy Constructor
- */
 Member::Member(const Member &anotherMember) {
-	this->addr = anotherMember.addr;
-	this->inited = anotherMember.inited;
-	this->inGroup = anotherMember.inGroup;
-	this->bFailed = anotherMember.bFailed;
-	this->nnb = anotherMember.nnb;
-	this->heartbeat = anotherMember.heartbeat;
-	this->pingCounter = anotherMember.pingCounter;
-	this->timeOutCounter = anotherMember.timeOutCounter;
-	this->memberList = anotherMember.memberList;
-	this->myPos = anotherMember.myPos;
+	this->addr_ = anotherMember.addr_;
+	this->inited_ = anotherMember.inited_;
+	this->in_group_ = anotherMember.in_group_;
+	this->failed_ = anotherMember.failed_;
+	this->nnb_ = anotherMember.nnb_;
+	this->heartbeat_ = anotherMember.heartbeat_;
+	this->ping_counter_ = anotherMember.ping_counter_;
+	this->timeout_counter_ = anotherMember.timeout_counter_;
+	this->member_list_ = anotherMember.member_list_;
+	this->my_pos_ = anotherMember.my_pos_;
 	this->mp1q = anotherMember.mp1q;
 }
 
-/**
- * Assignment operator overloading
- */
 Member& Member::operator =(const Member& anotherMember) {
-	this->addr = anotherMember.addr;
-	this->inited = anotherMember.inited;
-	this->inGroup = anotherMember.inGroup;
-	this->bFailed = anotherMember.bFailed;
-	this->nnb = anotherMember.nnb;
-	this->heartbeat = anotherMember.heartbeat;
-	this->pingCounter = anotherMember.pingCounter;
-	this->timeOutCounter = anotherMember.timeOutCounter;
-	this->memberList = anotherMember.memberList;
-	this->myPos = anotherMember.myPos;
+	this->addr_ = anotherMember.addr_;
+	this->inited_ = anotherMember.inited_;
+	this->in_group_ = anotherMember.in_group_;
+	this->failed_ = anotherMember.failed_;
+	this->nnb_ = anotherMember.nnb_;
+	this->heartbeat_ = anotherMember.heartbeat_;
+	this->ping_counter_ = anotherMember.ping_counter_;
+	this->timeout_counter_ = anotherMember.timeout_counter_;
+	this->member_list_ = anotherMember.member_list_;
+	this->my_pos_ = anotherMember.my_pos_;
 	this->mp1q = anotherMember.mp1q;
 	return *this;
 }

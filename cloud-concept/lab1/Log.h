@@ -15,26 +15,29 @@
  * Macros
  */
 // number of writes after which to flush file
-#define MAXWRITES 1
-#define MAGIC_NUMBER "CS425"
-#define DBG_LOG "dbg.log"
-#define STATS_LOG "stats.log"
-
+namespace {
+    const int MAXWRITES {1};
+    const std::string MAGIC_NUMBER {"CS425"};
+    const std::string DBG_LOG {"dbg.log"};
+    const std::string STATS_LOG {"stats.log"};
+}
 /**
  * CLASS NAME: Log
  *
  * DESCRIPTION: Functions to log messages in a debug log
  */
-class Log{
+class Log {
 private:
-	Params *par;
-	bool firstTime;
+	Params *par_;
+	bool first_time_{false};
 public:
-	Log(Params *p);
-	Log(const Log &anotherLog);
-	Log& operator = (const Log &anotherLog);
+	explicit Log(Params *p);
+	explicit Log(const Log &anotherLog);
+	Log& operator=(const Log &anotherLog);
+
 	virtual ~Log();
-	void LOG(Address *, const char * str, ...);
+
+	void LOG(Address *, const std::string& str, ...);
 	void logNodeAdd(Address *, Address *);
 	void logNodeRemove(Address *, Address *);
 };

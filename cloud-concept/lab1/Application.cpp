@@ -55,7 +55,7 @@ Application::Application(const std::string& infile):
 	for (auto i{0}; i < param_->en_gpsz_; ++i ) {
 
 		Member *memberNode = new Member;
-		memberNode->inited = false;
+		memberNode->inited_ = false;
 
 		Address *address_of_member_node = new Address();
 		// Address join_addr{getjoinaddr()};
@@ -64,7 +64,7 @@ Application::Application(const std::string& infile):
 
 		mp1[i] = new MP1Node(memberNode, param_.get(), emul_net_.get(), logger_.get(), address_of_member_node);
 
-		logger_->LOG(&(mp1[i]->getMemberNode()->addr), "APP");
+		logger_->LOG(&(mp1[i]->getMemberNode()->addr_), "APP");
 
 		delete address_of_member_node;
 	}
@@ -119,7 +119,7 @@ void Application::mp1Run() {
 		/*
 		 * Receive messages from the network and queue them in the membership protocol queue
 		 */
-		if (param_->getcurrtime() > param_->step_rate_*i && !(mp1[i]->getMemberNode()->bFailed) ) {
+		if (param_->getcurrtime() > param_->step_rate_*i && !(mp1[i]->getMemberNode()->failed_) ) {
 			// Receive messages from the network and queue them
 			mp1[i]->recvLoop();
 		}
@@ -135,19 +135,19 @@ void Application::mp1Run() {
 		if( param_->getcurrtime() == (int)(param_->step_rate_*i) ) {
 			// introduce the ith node into the system at time STEPRATE*i
 			mp1[i]->nodeStart(JOINADDR, param_->port_num_);
-			cout<<i<<"-th introduced node is assigned with the address: "<<mp1[i]->getMemberNode()->addr.getAddress() << endl;
+			cout<<i<<"-th introduced node is assigned with the address: "<<mp1[i]->getMemberNode()->addr_.getAddress() << endl;
 			nodeCount += i;
 		}
 
 		/*
 		 * Handle all the messages in your queue and send heartbeats
 		 */
-		else if( param_->getcurrtime() > (int)(param_->step_rate_*i) && !(mp1[i]->getMemberNode()->bFailed) ) {
+		else if( param_->getcurrtime() > (int)(param_->step_rate_*i) && !(mp1[i]->getMemberNode()->failed_) ) {
 			// handle messages and send heartbeats
 			mp1[i]->nodeLoop();
 			#ifdef DEBUGLOG
 			if ((i == 0) && (param_->global_time_ % 500 == 0)) {
-				logger_->LOG(&mp1[i]->getMemberNode()->addr, "@@time=%d", param_->getcurrtime());
+				logger_->LOG(&mp1[i]->getMemberNode()->addr_, "@@time=%d", param_->getcurrtime());
 			}
 			#endif
 		}
@@ -175,9 +175,9 @@ void Application::fail() {
 		removed = (rand() % param_->en_gpsz_);
 
 		#ifdef DEBUGLOG
-		logger_->LOG(&mp1[removed]->getMemberNode()->addr, "Node failed at time=%d", param_->getcurrtime());
+		logger_->LOG(&mp1[removed]->getMemberNode()->addr_, "Node failed at time=%d", param_->getcurrtime());
 		#endif
-		mp1[removed]->getMemberNode()->bFailed = true;
+		mp1[removed]->getMemberNode()->failed_ = true;
 
 	} else if (param_->getcurrtime() == 100 ) {
 		removed = rand() % param_->en_gpsz_ / 2;
@@ -185,10 +185,10 @@ void Application::fail() {
 		for (auto i{removed}; i < removed + param_->en_gpsz_ / 2; i++ ) {
 
 			#ifdef DEBUGLOG
-			logger_->LOG(&mp1[i]->getMemberNode()->addr, "Node failed at time = %d", param_->getcurrtime());
+			logger_->LOG(&mp1[i]->getMemberNode()->addr_, "Node failed at time = %d", param_->getcurrtime());
 			#endif
 
-			mp1[i]->getMemberNode()->bFailed = true;
+			mp1[i]->getMemberNode()->failed_ = true;
 		}
 	}
 
@@ -207,8 +207,8 @@ Address Application::getjoinaddr(void) const {
 	//trace.funcEntry("Application::getjoinaddr");
     Address joinaddr;
     joinaddr.init();
-    *(int *)(&(joinaddr.addr))=1;
-    *(short *)(&(joinaddr.addr[4]))=0;
+    joinaddr.id_ = 1;
+    joinaddr.port_ = 0;
     //trace.funcExit("Application::getjoinaddr", SUCCESS);
     return joinaddr;
 }

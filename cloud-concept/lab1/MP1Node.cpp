@@ -7,24 +7,13 @@
 
 #include "MP1Node.h"
 
-/*
- * Note: You can change/add any functions in MP1Node.{h,cpp}
- */
-
-/**
- * Overloaded Constructor of the MP1Node class
- * You can add new members to the class if you think it
- * is necessary for your logic to work
- */
-MP1Node::MP1Node(Member *member, Params *params, EmulNet *emul, Log *log, Address *address) {
-	for( int i = 0; i < 6; i++ ) {
+MP1Node::MP1Node(Member *member, Params *params, EmulNet *emul, Log *log, Address *address)
+  : emul_net_{emul}, logger_{log}, par_{params}, member_node_{member}
+{
+	for(int i = 0; i < 6; i++ ) {
 		NULLADDR[i] = 0;
 	}
-	this->memberNode = member;
-	this->emulNet = emul;
-	this->log = log;
-	this->par = params;
-	this->memberNode->addr = *address;
+	this->member_node_->addr_ = *address;
 }
 
 /**
@@ -39,11 +28,11 @@ MP1Node::~MP1Node() {}
  * 				This function is called by a node to receive messages currently waiting for it
  */
 int MP1Node::recvLoop() {
-    if ( memberNode->bFailed ) {
+    if (member_node_->failed_) {
     	return false;
     }
     else {
-    	return emulNet->ENrecv(&(memberNode->addr), enqueueWrapper, NULL, 1, &(memberNode->mp1q));
+    	return emul_net_->ENrecv(&(member_node_->addr_), enqueueWrapper, NULL, 1, &(member_node_->mp1q));
     }
 }
 
@@ -71,7 +60,7 @@ void MP1Node::nodeStart(char *servaddrstr, short servport) {
     // Self booting routines
     if( initThisNode(&joinaddr) == -1 ) {
 #ifdef DEBUGLOG
-        log->LOG(&memberNode->addr, "init_thisnode failed. Exit.");
+        logger_->LOG(&member_node_->addr_, "init_thisnode failed. Exit.");
 #endif
         exit(1);
     }
@@ -79,7 +68,7 @@ void MP1Node::nodeStart(char *servaddrstr, short servport) {
     if( !introduceSelfToGroup(&joinaddr) ) {
         finishUpThisNode();
 #ifdef DEBUGLOG
-        log->LOG(&memberNode->addr, "Unable to join self to group. Exiting.");
+        logger_->LOG(&member_node_->addr_, "Unable to join self to group. Exiting.");
 #endif
         exit(1);
     }
@@ -96,20 +85,20 @@ int MP1Node::initThisNode(Address *joinaddr) {
 	/*
 	 * This function is partially implemented and may require changes
 	 */
-	int id = *(int*)(&memberNode->addr.addr);
-	int port = *(short*)(&memberNode->addr.addr[4]);
+  int id = member_node_->addr_.id_;
+  int port = member_node_->addr_.port_;
 
-	memberNode->bFailed = false;
-	memberNode->inited = true;
-	memberNode->inGroup = false;
-    // node is up!
-	memberNode->nnb = 0;
-	memberNode->heartbeat = 0;
-	memberNode->pingCounter = TFAIL;
-	memberNode->timeOutCounter = -1;
-    initMemberListTable(memberNode);
+	member_node_->failed_ = false;
+	member_node_->inited_ = true;
+	member_node_->in_group_ = false;
 
-    return 0;
+	member_node_->nnb_ = 0;
+	member_node_->heartbeat_ = 0;
+	member_node_->ping_counter_ = TFAIL;
+	member_node_->timeout_counter_ = -1;
+  initMemberListTable(member_node_);
+
+  return 0;
 }
 
 /**
@@ -123,15 +112,14 @@ int MP1Node::introduceSelfToGroup(Address *joinaddr) {
     static char s[1024];
 #endif
 
-    if ( 0 == memcmp((char *)&(memberNode->addr.addr), (char *)&(joinaddr->addr), sizeof(memberNode->addr.addr))) {
-        // I am the group booter (first process to join the group). Boot up the group
+    if (member_node_->addr_ == *joinaddr) {
 #ifdef DEBUGLOG
-        log->LOG(&memberNode->addr, "Starting up group...");
+        logger_->LOG(&member_node_->addr_, "Starting up group...");
 #endif
-        memberNode->inGroup = true;
-    }
-    else {
-        size_t msgsize = sizeof(MessageHdr) + sizeof(joinaddr->addr) + sizeof(long) + 1;
+        member_node_->in_group_ = true;
+
+    } else {
+        size_t msgsize = sizeof(MessageHdr) + sizeof(short) + sizeof(int) + sizeof(long) + 1;
         msg = (MessageHdr *) malloc(msgsize * sizeof(char));
 
         // create JOINREQ message: format of data is {struct Address myaddr}
@@ -141,11 +129,11 @@ int MP1Node::introduceSelfToGroup(Address *joinaddr) {
 
 #ifdef DEBUGLOG
         sprintf(s, "Trying to join...");
-        log->LOG(&memberNode->addr, s);
+        logger_->LOG(&member_node_->addr_, s);
 #endif
 
         // send JOINREQ message to introducer member
-        emulNet->ENsend(&memberNode->addr, joinaddr, (char *)msg, msgsize);
+        emul_net_->ENsend(&member_node_->addr_, joinaddr, (char *)msg, msgsize);
 
         free(msg);
     }
